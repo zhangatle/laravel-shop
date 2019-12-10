@@ -15,12 +15,25 @@
             <!-- Right Side Of Navbar -->
             <ul class="navbar-nav navbar-right">
                 <!-- Authentication Links -->
+                @guest
                 <li class="nav-item">
-                    <a href="#" class="nav-link">登录</a>
+                    <a href="{{route('login')}}" class="nav-link">登录</a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">注册</a>
+                    <a href="{{route('register')}}" class="nav-link">注册</a>
                 </li>
+                @else
+                <li class="nav-item dropdown">
+                    <a id="navbarDropDown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#" class="nav-link dropdown-toggle">
+                        <img src="https://cdn.learnku.com/uploads/images/201709/20/1/PtDKbASVcz.png?imageView2/1/w/60/h/60" class="img-responsive img-circle" alt="" width="30px" height="30px">
+                        {{Auth::user()->name}}
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropDown">
+                        <a id="logout" href="#" class="dropdown-item" onclick="event.preventDefault();document.getElementById('logout-form').submit();">退出登录</a>
+                        <form action="{{route('logout')}}" id="logout-form" method="POST" style="display: none;">{{csrf_field()}}</form>
+                    </div>
+                </li>
+                @endguest
             </ul>
         </div>
     </div>
