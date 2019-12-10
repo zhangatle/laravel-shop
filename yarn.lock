@@ -1518,6 +1518,11 @@ charenc@~0.0.1:
   resolved "https://registry.yarnpkg.com/charenc/-/charenc-0.0.2.tgz#c0a1d2f3a7092e03774bfa83f14c0fc5790a8667"
   integrity sha1-wKHS86cJLgN3S/qD8UwPxXkKhmc=
 
+china-area-data@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/china-area-data/-/china-area-data-4.0.0.tgz#95c27bf4dff8b99ee92f972b1739d551da7f303b"
+  integrity sha512-RG9b/ic5ZIGrPXfWgeDvf1DpMZyD6jKAi5ZBjzAlt500nF5uqH9javgKC7ookGtJzFPHwc7+9hs8NRiGj+nFNw==
+
 "chokidar@>=2.0.0 <4.0.0":
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/chokidar/-/chokidar-3.3.0.tgz#12c0714668c55800f659e262d4962a97faf554a6"
