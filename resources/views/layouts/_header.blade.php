@@ -33,6 +33,7 @@
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropDown">
                         <a href="{{route('user_addresses.index')}}" class="dropdown-item">收货地址</a>
+                        <a href="{{route('orders.index')}}" class="dropdown-item">我的订单</a>
                         <a href="{{route('products.favorites')}}" class="dropdown-item">我的收藏</a>
                         <a id="logout" href="#" class="dropdown-item" onclick="event.preventDefault();document.getElementById('logout-form').submit();">退出登录</a>
                         <form action="{{route('logout')}}" id="logout-form" method="POST" style="display: none;">{{csrf_field()}}</form>
