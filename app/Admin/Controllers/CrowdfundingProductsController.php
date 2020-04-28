@@ -3,19 +3,20 @@
 namespace App\Admin\Controllers;
 
 use App\Models\Category;
+use App\Models\CrowdfundingProduct;
 use App\Models\Product;
 use Encore\Admin\Controllers\AdminController;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 
-class ProductsController extends AdminController
+class CrowdfundingProductsController extends AdminController
 {
     /**
      * Title for current resource.
      *
      * @var string
      */
-    protected $title = '商品';
+    protected $title = '众筹商品';
 
     /**
      * Make a grid builder.
@@ -25,22 +26,26 @@ class ProductsController extends AdminController
     protected function grid()
     {
         $grid = new Grid(new Product());
-        $grid->model()->where('type',Product::TYPE_NORMAL)->with(['category']);
 
-        $grid->id('ID')->sortable();
-        $grid->title('商品名称');
-        $grid->column('category.name','类目');
-        $grid->on_sale('已上架')->display(function ($value){
+        $grid->model()->where('type', Product::TYPE_CROWDFUNDING);
+        $grid->column('id', 'ID')->sortable();
+        $grid->column('title', '商品名称');
+        $grid->column('on_sale','已上架')->display(function ($value) {
             return $value ? '是' : '否';
         });
-        $grid->rating('评分');
-        $grid->sold_count('销量');
-        $grid->review_count('评论数');
-        $grid->price('价格');
+        $grid->column('price', '价格');
+        $grid->column('crowdfunding.target_amount', '目标金额');
+        $grid->column('crowdfunding.end_at', '结束时间');
+        $grid->column('crowdfunding.total_amount', '目前金额');
+        $grid->column('crowdfunding.status', '状态')->display(function ($value) {
+            return CrowdfundingProduct::$statusMap[$value];
+        });
+
         $grid->actions(function ($actions) {
             $actions->disableView();
             $actions->disableDelete();
         });
+
         $grid->tools(function ($tools) {
             $tools->batch(function ($batch) {
                 $batch->disableDelete();
@@ -59,9 +64,9 @@ class ProductsController extends AdminController
     {
         $form = new Form(new Product());
 
-        $form->hidden('type')->value(Product::TYPE_NORMAL);
-        $form->text('title', '商品名称')->required();
-        $form->select('category_id','类目')->options(function ($id) {
+        $form->hidden('type', '类型')->value(Product::TYPE_CROWDFUNDING);
+        $form->text('title','商品名称')->rules('required');
+        $form->select('category_id', '类目')->options(function ($id) {
             $category = Category::find($id);
             if($category) {
                 return [$category->id => $category->full_name];
@@ -70,6 +75,8 @@ class ProductsController extends AdminController
         $form->quill('description', '商品描述')->rules('required');
         $form->image('image', '封面图片')->rules('required|image');
         $form->radio('on_sale', '上架')->options(['1'=>'是', '0'=>'否'])->default('0');
+        $form->text('crowdfunding.target_amount','众筹目标金额')->rules('required|numeric|min:0.01');
+        $form->datetime('crowdfunding.end_at','众筹结束时间')->rules('required|date');
         // 直接添加一对多的关联模型
         $form->hasMany('skus', 'SKU 列表', function (Form\NestedForm $form) {
             $form->text('title', 'SKU 名称')->rules('required');
@@ -77,10 +84,8 @@ class ProductsController extends AdminController
             $form->text('price', '单价')->rules('required|numeric|min:0.01');
             $form->text('stock', '剩余库存')->rules('required|integer|min:0');
         });
-
-        // 定义事件回调，当模型即将保存时会触发这个回调
         $form->saving(function (Form $form) {
-            $form->model()->price = collect($form->input('skus'))->where(Form::REMOVE_FLAG_NAME, 0)->min('price') ?: 0;
+            $form->model()->price = collect($form->input('skus'))->where(Form::REMOVE_FLAG_NAME,0)->min('price');
         });
 
         return $form;
