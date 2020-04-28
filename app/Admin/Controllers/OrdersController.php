@@ -6,6 +6,7 @@ use App\Exceptions\InternalException;
 use App\Exceptions\InvalidRequestException;
 use App\Http\Requests\Admin\HandleRefundRequest;
 use App\Models\CrowdfundingProduct;
+use App\Services\OrderService;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use Encore\Admin\Controllers\AdminController;
@@ -98,7 +99,7 @@ class OrdersController extends AdminController
         return redirect()->back();
     }
 
-    public function handleRefund(Order $order, HandleRefundRequest $request) {
+    public function handleRefund(Order $order, HandleRefundRequest $request, OrderService $orderService) {
         // 判断订单状态是否正确
         if ($order->refund_status !== Order::REFUND_STATUS_APPLIED) {
             throw new InvalidRequestException('订单状态不正确');
@@ -112,7 +113,7 @@ class OrdersController extends AdminController
                 'extra' => $extra,
             ]);
             // 调用退款逻辑
-            $this->_refundOrder($order);
+            $orderService->refundOrder($order);
         } else {
             // 将拒绝退款理由放到订单的 extra 字段中
             $extra = $order->extra ?: [];
