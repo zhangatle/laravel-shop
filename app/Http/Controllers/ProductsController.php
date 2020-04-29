@@ -54,11 +54,11 @@ class ProductsController extends Controller
         }
 
         if ($search = $request->input('search', '')) {
-            $keywords = array_filter(explode(' ', $search));
             $params['body']['query']['bool']['must'] = [
                 [
                     'multi_match' => [
-                        'query'  => $keywords,
+                        'query'  => $search,
+                        "minimum_should_match" => "100%",
                         'fields' => [
                             'title^2',
                             'long_title^2',
@@ -70,6 +70,31 @@ class ProductsController extends Controller
                         ],
                     ],
                 ]
+            ];
+        }
+
+        // 只有当用户有输入搜索词或者使用了类目筛选的时候才会做聚合
+        if ($search || isset($category)) {
+            $params['body']['aggs'] = [
+                'properties' => [
+                    'nested' => [
+                        'path' => 'properties',
+                    ],
+                    'aggs'   => [
+                        'properties' => [
+                            'terms' => [
+                                'field' => 'properties.name',
+                            ],
+                            'aggs'  => [
+                                'value' => [
+                                    'terms' => [
+                                        'field' => 'properties.value',
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
             ];
         }
 
@@ -86,6 +111,20 @@ class ProductsController extends Controller
             'path' => route('products.index', false), // 手动构建分页的 url
         ]);
 
+        $properties = [];
+        // 如果返回结果里有 aggregations 字段，说明做了分面搜索
+        if (isset($result['aggregations'])) {
+            // 使用 collect 函数将返回值转为集合
+            $properties = collect($result['aggregations']['properties']['properties']['buckets'])
+                ->map(function ($bucket) {
+                    // 通过 map 方法取出我们需要的字段
+                    return [
+                        'key'    => $bucket['key'],
+                        'values' => collect($bucket['value']['buckets'])->pluck('key')->all(),
+                    ];
+                });
+        }
+
         return view('products.index', [
             'products' => $pager,
             'filters'  => [
@@ -93,6 +132,7 @@ class ProductsController extends Controller
                 'order'  => $order,
             ],
             'category' => $category ?? null,
+            'properties' => $properties,
         ]);
     }
 
