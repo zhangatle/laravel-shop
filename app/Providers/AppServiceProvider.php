@@ -3,8 +3,11 @@
 namespace App\Providers;
 
 use App\Http\viewComposers\CategoryTreeComposer;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Monolog\Logger;
 use Yansongda\Pay\Pay;
 use Elasticsearch\ClientBuilder as ESClientBuilder;
@@ -64,5 +67,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         View::composer(['products.index','products.show'], CategoryTreeComposer::class);
+        // 只在本地开发启用sql日志
+        if(app()->environment('local')) {
+            DB::listen(function ($query) {
+                Log::info(Str::replaceArray('?',$query->bindings, $query->sql));
+            });
+        }
     }
 }
