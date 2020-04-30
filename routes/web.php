@@ -15,7 +15,7 @@ Route::redirect('/','/products')->name('root');
 
 Auth::routes(['verify' => true]);
 
-Route::post('seckill_orders', 'OrdersController@seckill')->name('seckill_orders.store');
+Route::post('seckill_orders', 'OrdersController@seckill')->name('seckill_orders.store')->middleware('random_drop:80');
 
 Route::group(['middleware' => ['auth','verified']],function (){
     Route::get('user_addresses',"userAddressController@index")->name('user_addresses.index');
